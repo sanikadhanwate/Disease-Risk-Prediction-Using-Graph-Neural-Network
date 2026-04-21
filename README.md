@@ -19,14 +19,14 @@ Traditional machine learning treats patients as independent data points. This pr
 
 ## Results
 
-| Model | Accuracy | Precision | Recall | F1 | ROC-AUC |
-|---|---|---|---|---|---|
-| **GCN (graph)** | — | — | — | **0.747** | **0.835** |
-| **GAT (graph)** | — | — | — | **0.765** | **0.828** |
-| MLP (no-graph ablation) | — | — | — | 0.760 | 0.833 |
-| Logistic Regression | — | — | — | 0.776 | 0.838 |
-| Random Forest | — | — | — | 0.769 | 0.848 |
-| Gradient Boosting | — | — | — | 0.751 | 0.845 |
+| Model | F1 | ROC-AUC |
+|---|---|---|
+| **GCN (graph)** | **0.747** | **0.835** |
+| **GAT (graph)** | **0.765** | **0.828** |
+| MLP (no-graph ablation) | 0.760 | 0.833 |
+| Logistic Regression | 0.776 | 0.838 |
+| Random Forest | 0.769 | 0.848 |
+| Gradient Boosting | 0.751 | 0.845 |
 
 > **Ablation finding:** GAT (with graph edges) beats MLP (same features, no edges) by Δ F1 = +0.005, isolating the contribution of graph structure.
 
