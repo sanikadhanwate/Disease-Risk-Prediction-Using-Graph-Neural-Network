@@ -34,14 +34,11 @@ Traditional machine learning treats patients as independent data points. This pr
 
 | ROC Curves | Ablation Study |
 |---|---|
-| (<img width="794" height="188" alt="image" src="https://github.com/user-attachments/assets/0decd4eb-aef8-405d-a57f-c9d8c592599c" />
-) | ![Ablation](<img width="764" height="368" alt="image" src="https://github.com/user-attachments/assets/ead22ca0-bf3c-4eb1-8a69-34413bb89825" />
-) |
+| <img width="794" height="188" alt="image" src="https://github.com/user-attachments/assets/0decd4eb-aef8-405d-a57f-c9d8c592599c" /> |<img width="764" height="368" alt="image" src="https://github.com/user-attachments/assets/ead22ca0-bf3c-4eb1-8a69-34413bb89825" />|
 
 | Feature Importance | t-SNE Node Embeddings |
 |---|---|
-| (<img width="548" height="656" alt="image" src="https://github.com/user-attachments/assets/ede5a1b5-582d-45bf-8c06-9c94dc2793b9" />) |(<img width="786" height="352" alt="image" src="https://github.com/user-attachments/assets/c427f27c-fce0-4fc5-9573-05731b617fa5" />
-) |
+| (<img width="548" height="656" alt="image" src="https://github.com/user-attachments/assets/ede5a1b5-582d-45bf-8c06-9c94dc2793b9" />) |<img width="786" height="352" alt="image" src="https://github.com/user-attachments/assets/c427f27c-fce0-4fc5-9573-05731b617fa5" />|
 
 ---
 
