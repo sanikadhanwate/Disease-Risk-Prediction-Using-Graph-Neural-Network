@@ -38,7 +38,7 @@ Traditional machine learning treats patients as independent data points. This pr
 
 | Feature Importance | t-SNE Node Embeddings |
 |---|---|
-| (<img width="548" height="656" alt="image" src="https://github.com/user-attachments/assets/ede5a1b5-582d-45bf-8c06-9c94dc2793b9" />) |<img width="786" height="352" alt="image" src="https://github.com/user-attachments/assets/c427f27c-fce0-4fc5-9573-05731b617fa5" />|
+| <img width="548" height="656" alt="image" src="https://github.com/user-attachments/assets/ede5a1b5-582d-45bf-8c06-9c94dc2793b9" /> |<img width="786" height="352" alt="image" src="https://github.com/user-attachments/assets/c427f27c-fce0-4fc5-9573-05731b617fa5" />|
 
 ---
 
