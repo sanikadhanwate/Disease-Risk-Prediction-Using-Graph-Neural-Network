@@ -34,8 +34,9 @@ Traditional machine learning treats patients as independent data points. This pr
 
 | ROC Curves | Ablation Study |
 |---|---|
-| ![ROC](<img width="794" height="188" alt="image" src="https://github.com/user-attachments/assets/0decd4eb-aef8-405d-a57f-c9d8c592599c" />
-) | ![Ablation](outputs/results/eval_ablation_summary.png) |
+| (<img width="794" height="188" alt="image" src="https://github.com/user-attachments/assets/0decd4eb-aef8-405d-a57f-c9d8c592599c" />
+) | ![Ablation](<img width="764" height="368" alt="image" src="https://github.com/user-attachments/assets/ead22ca0-bf3c-4eb1-8a69-34413bb89825" />
+) |
 
 | Feature Importance | t-SNE Node Embeddings |
 |---|---|
