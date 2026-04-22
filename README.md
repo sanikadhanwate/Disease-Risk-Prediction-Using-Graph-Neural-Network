@@ -168,6 +168,6 @@ Expected runtime: ~5–10 minutes on CPU (t-SNE in Phase 5 takes ~30s).
 @misc{gnn-disease-risk,
   title   = {Disease Risk Prediction using Graph Neural Networks},
   year    = {2025},
-  url     = {https://github.com/YOURUSERNAME/GNN-Disease-Risk-Prediction}
+  url     = {https://github.com/sanikadhanwate/GNN-Disease-Risk-Prediction}
 }
 ```
