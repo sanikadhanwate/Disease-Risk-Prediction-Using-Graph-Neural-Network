@@ -34,11 +34,12 @@ Traditional machine learning treats patients as independent data points. This pr
 
 | ROC Curves | Ablation Study |
 |---|---|
-| ![ROC](https://github.com/sanikadhanwate/Disease-Risk-Prediction-Using-Graph-Neural-Network/blob/main/results/eval_roc_curves.png) | ![Ablation](outputs/results/eval_ablation_summary.png) |
+| ![ROC](https://github.com/sanikadhanwate/Disease-Risk-Prediction-Using-Graph-Neural-Network/blob/main/results/eval_roc_curves.png) | ![Ablation](https://github.com/sanikadhanwate/Disease-Risk-Prediction-Using-Graph-Neural-Network/blob/main/results/eval_ablation_summary.png
+) |
 
 | Feature Importance | t-SNE Node Embeddings |
 |---|---|
-| ![Features](outputs/results/eval_feature_importance.png) | ![tSNE](outputs/results/eval_node_embeddings.png) |
+| ![Features](https://github.com/sanikadhanwate/Disease-Risk-Prediction-Using-Graph-Neural-Network/blob/main/results/eval_feature_importance.png) | ![tSNE](https://github.com/sanikadhanwate/Disease-Risk-Prediction-Using-Graph-Neural-Network/blob/main/results/eval_node_embeddings.png) |
 
 ---
 
