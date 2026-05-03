@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClinicalGraph — Patient Disease Risk Predictor</title>
+<style>
+  :root {
+    --navy:#0D1B3E;--navy2:#142352;--navy3:#1A2B55;
+    --teal:#0D9488;--teal2:#14B8A6;--teal-pale:#CCFBF1;--teal-dk:#0F766E;
+    --slate:#64748B;--slate2:#94A3B8;--slate3:#CBD5E1;
+    --red:#EF4444;--red-pale:#FEE2E2;--red-dk:#991B1B;--red-md:#DC2626;
+    --grn:#22C55E;--grn-pale:#DCFCE7;--grn-dk:#166534;--grn-md:#16A34A;
+    --amb:#F59E0B;--amb-pale:#FEF3C7;--amb-dk:#92400E;
+    --blue:#3B82F6;--blue-pale:#EFF6FF;--blue-dk:#1E40AF;
+    --purple:#8B5CF6;--purple-pale:#F5F3FF;--purple-dk:#5B21B6;
+    --w:#FFFFFF;--g50:#F8FAFC;--g100:#F1F5F9;--g200:#E2E8F0;
+    --g400:#94A3B8;--g600:#475569;--g800:#1E293B;
+    --r:8px;--rl:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--g50);color:var(--g800);font-size:14px;line-height:1.6}
+  header{background:var(--navy);color:#fff;padding:0 1.75rem;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:200;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo-icon{width:32px;height:32px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .logo-text{font-size:16px;font-weight:700}
+  .logo-sub{font-size:10px;color:var(--slate2);margin-top:-1px}
+  .hstats{display:flex;gap:22px}
+  .hsp{text-align:center}
+  .hsp .v{font-size:15px;font-weight:700;color:var(--teal2)}
+  .hsp .l{font-size:10px;color:var(--slate2)}
+  .wrap{display:grid;grid-template-columns:340px 1fr;gap:16px;padding:16px;max-width:1360px;margin:0 auto}
+  .panel{background:var(--w);border:1px solid var(--g200);border-radius:var(--rl);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+  .ph{padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;display:flex;align-items:center;gap:7px;color:#fff}
+  .ph.navy{background:var(--navy)}.ph.teal{background:var(--teal)}
+  .ph.red{background:var(--red-dk)}.ph.dark{background:var(--g800)}
+  .pb{padding:14px 16px}
+  /* Form */
+  .fs{margin-bottom:14px}
+  .fs-title{font-size:10px;font-weight:700;color:var(--teal-dk);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid var(--teal-pale);display:flex;align-items:center;gap:5px}
+  .fg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .field{display:flex;flex-direction:column;gap:2px}
+  .field label{font-size:11px;color:var(--slate);font-weight:500;display:flex;justify-content:space-between}
+  .field label .rh{font-size:10px;color:var(--slate2);font-weight:400}
+  .field input,.field select{width:100%;border:1.5px solid var(--g200);border-radius:var(--r);padding:6px 9px;font-size:13px;color:var(--g800);background:var(--w);outline:none;transition:border-color .15s,box-shadow .15s}
+  .field input:focus,.field select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.1)}
+  .field input.err{border-color:var(--red)!important;background:#fff8f8}
+  .field input.ok{border-color:var(--grn-md)}
+  .ferr{font-size:10px;color:var(--red-dk);margin-top:2px;display:none;font-weight:500;line-height:1.3}
+  .ferr.show{display:block}
+  .btn-predict{width:100%;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s;box-shadow:0 2px 8px rgba(13,148,136,.3);letter-spacing:.3px;margin-top:4px}
+  .btn-predict:hover{background:var(--teal-dk)}
+  .btn-predict:active{transform:scale(.99)}
+  .btn-predict:disabled{background:var(--g400);box-shadow:none;cursor:not-allowed}
+  .form-info{font-size:11px;color:var(--slate);background:var(--g50);border:1px solid var(--g200);border-radius:var(--r);padding:9px 11px;margin-top:9px;line-height:1.55}
+  /* Right */
+  .right{display:flex;flex-direction:column;gap:14px}
+  /* Welcome */
+  .welcome{padding:28px 20px;text-align:center}
+  .welcome-icon{font-size:40px;margin-bottom:10px;opacity:.45}
+  .welcome-title{font-size:15px;font-weight:600;margin-bottom:6px}
+  .welcome-sub{font-size:12px;color:var(--slate);line-height:1.6;max-width:400px;margin:0 auto 18px}
+  .how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+  .how-card{background:var(--g50);border:1px solid var(--g200);border-radius:var(--r);padding:12px 8px;text-align:center}
+  .how-num{width:24px;height:24px;background:var(--teal);color:#fff;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 7px}
+  .how-lbl{font-size:11px;color:var(--slate);line-height:1.4}
+  /* Spinner */
+  .spin-wrap{padding:32px;text-align:center}
+  .spinner{width:36px;height:36px;border:3px solid var(--teal-pale);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spin-text{font-size:12px;color:var(--slate)}
+  /* Risk banner */
+  .risk-banner{padding:16px 18px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--g100)}
+  .ring-wrap{position:relative;width:76px;height:76px;flex-shrink:0}
+  .ring-svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
+  .ring-bg{fill:none;stroke:var(--g200);stroke-width:5}
+  .ring-fill{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)}
+  .ring-fill.high{stroke:var(--red)}.ring-fill.low{stroke:var(--grn)}
+  .ring-center{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring-pct{font-size:17px;font-weight:800;line-height:1}
+  .ring-pct.high{color:var(--red-dk)}.ring-pct.low{color:var(--grn-dk)}
+  .ring-lbl{font-size:8px;font-weight:500;color:var(--slate);margin-top:1px}
+  @keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(239,68,68,.4)}70%{box-shadow:0 0 0 10px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+  .pulse{animation:pulse-ring 2s infinite;border-radius:50%}
+  .risk-info{flex:1}
+  .risk-label{font-size:18px;font-weight:700}
+  .risk-label.high{color:var(--red-dk)}.risk-label.low{color:var(--grn-dk)}
+  .risk-sub{font-size:11px;color:var(--slate);margin-top:2px}
+  .risk-bars{flex:1}
+  .prow{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+  .plbl{font-size:11px;color:var(--slate);width:90px;flex-shrink:0}
+  .pbg{flex:1;height:10px;background:var(--g100);border-radius:5px;overflow:hidden}
+  .pbar{height:100%;border-radius:5px;transition:width .8s cubic-bezier(.4,0,.2,1);width:0}
+  .pbar.d{background:var(--red)}.pbar.h{background:var(--grn)}
+  .ppct{font-size:12px;font-weight:700;width:34px;text-align:right}
+  .ppct.d{color:var(--red-dk)}.ppct.h{color:var(--grn-dk)}
+  .nb-sum-line{font-size:11px;color:var(--slate);margin-top:5px;padding:5px 8px;background:var(--g50);border-radius:5px;border-left:3px solid var(--teal)}
+  /* Care plan */
+  .care-card{border:1px solid var(--g200);border-radius:var(--rl);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+  .care-header{padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
+  .care-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+  .care-title{font-size:15px;font-weight:700}
+  .care-msg{font-size:11px;margin-top:3px;line-height:1.5}
+  .care-divider{height:1px;background:var(--g100)}
+  .care-body{padding:12px 16px 14px}
+  .care-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+  .care-items{display:flex;flex-direction:column;gap:5px}
+  .care-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:var(--r);font-size:11px;line-height:1.55}
+  .care-item-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+  .ci-grn{background:var(--grn-pale);color:var(--grn-dk)}
+  .ci-red{background:var(--red-pale);color:var(--red-dk)}
+  .ci-blue{background:var(--blue-pale);color:var(--blue-dk)}
+  .ci-amb{background:var(--amb-pale);color:var(--amb-dk)}
+  .ci-purple{background:var(--purple-pale);color:var(--purple-dk)}
+
+  /* ── Navigation ── */
+  .app-shell{display:flex;height:calc(100vh - 58px)}
+  .sidebar{width:260px;background:var(--navy);color:#fff;display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;border-right:1px solid rgba(255,255,255,.07)}
+  .sidebar-section{padding:16px 12px 8px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35)}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13px;color:rgba(255,255,255,.7);cursor:pointer;border-radius:8px;margin:1px 6px;transition:background .15s,color .15s;user-select:none}
+  .nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+  .nav-item.active{background:rgba(13,148,136,.25);color:var(--teal2);font-weight:600}
+  .nav-item .ni-icon{width:20px;text-align:center;font-size:14px;flex-shrink:0}
+  .nav-item .ni-badge{margin-left:auto;background:var(--teal);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
+  .sidebar-divider{height:1px;background:rgba(255,255,255,.07);margin:8px 16px}
+  .sidebar-stat{padding:8px 16px;font-size:11px;color:rgba(255,255,255,.5)}
+  .sidebar-stat .sv{font-size:15px;font-weight:700;color:var(--teal2);display:block}
+  .main-content{flex:1;overflow-y:auto;padding:20px;background:var(--g50)}
+  /* ── Page tabs ── */
+  .page{display:none}.page.active{display:block}
+  /* ── Graph viz panel ── */
+  .graph-viz{background:var(--navy);border-radius:var(--rl);padding:20px;position:relative;overflow:hidden;min-height:160px}
+  .graph-viz-title{font-size:12px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:4px}
+  .graph-viz-sub{font-size:20px;font-weight:800;color:#fff}
+  .graph-canvas{position:absolute;top:0;right:0;width:260px;height:100%;pointer-events:none}
+  /* ── Stats strip ── */
+  .stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  .stat-card{background:var(--w);border:1px solid var(--g200);border-radius:var(--rl);padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .stat-card .sc-val{font-size:22px;font-weight:800;color:var(--navy)}
+  .stat-card .sc-lbl{font-size:11px;color:var(--slate);margin-top:2px}
+  .stat-card .sc-trend{font-size:10px;margin-top:4px;font-weight:600}
+  .sc-trend.up{color:var(--grn-dk)}.sc-trend.down{color:var(--red-dk)}.sc-trend.neutral{color:var(--slate)}
+  /* ── Two-col layout ── */
+  .two-col{display:grid;grid-template-columns:340px 1fr;gap:16px}
+  /* ── History page ── */
+  .hist-item{background:var(--w);border:1px solid var(--g200);border-radius:var(--r);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:box-shadow .15s}
+  .hist-item:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
+  .hist-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+  .hist-dot.high{background:var(--red)}.hist-dot.low{background:var(--grn)}
+  .hist-info{flex:1}
+  .hist-name{font-size:13px;font-weight:600;color:var(--g800)}
+  .hist-detail{font-size:11px;color:var(--slate);margin-top:1px}
+  .hist-pct{font-size:16px;font-weight:800}
+  .hist-pct.high{color:var(--red-dk)}.hist-pct.low{color:var(--grn-dk)}
+  .empty-hist{text-align:center;padding:40px 20px;color:var(--slate)}
+  .empty-hist .ei{font-size:32px;opacity:.3;margin-bottom:10px}
+  /* ── About page ── */
+  .about-section{background:var(--w);border:1px solid var(--g200);border-radius:var(--rl);padding:20px;margin-bottom:14px}
+  .about-title{font-size:15px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .about-body{font-size:13px;color:var(--slate);line-height:1.7}
+  .tech-pill{display:inline-block;background:var(--g100);border:1px solid var(--g200);border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--g600);margin:2px}
+  /* ── Generative animated bg on graph viz ── */
+  @keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(-8px,12px)}}
+  @keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(12px,-8px)}}
+  @keyframes float3{0%,100%{transform:translate(0,0)}50%{transform:translate(-6px,-10px)}}
+  /* Bottom 3-col */
+  .bot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+  /* Contrib */
+  .crow{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--g100)}
+  .crow:last-child{border:none}
+  .cn{font-size:11px;color:var(--g800);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cbg{width:68px;height:7px;background:var(--g100);border-radius:3px;overflow:hidden;flex-shrink:0}
+  .cb{height:100%;border-radius:3px;transition:width .6s ease}
+  .cb.risk{background:var(--red)}.cb.protective{background:var(--grn)}
+  .csign{font-size:10px;font-weight:700;width:40px;text-align:right;flex-shrink:0}
+  .csign.risk{color:var(--red-dk)}.csign.protective{color:var(--grn-dk)}
+  /* Neighbours */
+  .nrow{display:flex;align-items:flex-start;gap:8px;padding:7px 4px;border-bottom:1px solid var(--g100);cursor:pointer;border-radius:5px;transition:background .1s}
+  .nrow:hover{background:var(--g50)}.nrow:last-child{border:none}
+  .ndot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:4px}
+  .ndot.disease{background:var(--red)}.ndot.healthy{background:var(--grn)}
+  .ni{flex:1;min-width:0}
+  .nn{font-size:11px;font-weight:600;color:var(--g800)}
+  .ns{font-size:10px;color:var(--slate);margin-top:1px}
+  .badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px}
+  .badge.disease{background:var(--red-pale);color:var(--red-dk)}
+  .badge.healthy{background:var(--grn-pale);color:var(--grn-dk)}
+  /* Attention */
+  .arow{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:11px}
+  .aid{color:var(--slate);width:72px;flex-shrink:0}
+  .abg{flex:1;height:6px;background:var(--g100);border-radius:3px;overflow:hidden}
+  .ab{height:100%;background:var(--teal);border-radius:3px;transition:width .5s}
+  .av{width:40px;text-align:right;font-weight:600;color:var(--teal);font-size:11px}
+  /* CF */
+  .cf-intro{font-size:11px;color:var(--amb-dk);background:var(--amb-pale);border-left:3px solid var(--amb);padding:8px 10px;border-radius:0 var(--r) var(--r) 0;margin-bottom:10px;line-height:1.5}
+  .cfrow{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--g100)}
+  .cfrow:last-child{border:none}
+  .cff{font-size:11px;flex:1;color:var(--g800)}
+  .cfc{display:flex;align-items:center;gap:5px;font-size:11px}
+  .cfo{color:var(--red-dk);font-weight:600}
+  .cfs{color:var(--grn-dk);font-weight:700}
+  .cfd{font-size:10px;color:var(--slate)}
+  /* Tabs */
+  .tabs{display:flex;border-bottom:1px solid var(--g200);background:var(--g50)}
+  .tab{padding:8px 14px;font-size:11px;font-weight:600;color:var(--slate);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap}
+  .tab.active{color:var(--teal-dk);border-bottom-color:var(--teal)}
+  .tab-content{display:none;padding:12px 14px}
+  .tab-content.active{display:block}
+  .note{font-size:10px;color:var(--slate);background:var(--g50);border:1px solid var(--g200);border-radius:6px;padding:7px 9px;margin-top:8px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- ── TOP NAV ──────────────────────────────────────────────────────────── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">&#9826;</div>
+    <div>
+      <div class="logo-text">ClinicalGraph</div>
+      <div class="logo-sub">GNN · Disease Risk Intelligence</div>
+    </div>
+  </div>
+  <div class="hstats">
+    <div class="hsp"><div class="v">1,688</div><div class="l">Patients in graph</div></div>
+    <div class="hsp"><div class="v">16,880</div><div class="l">Graph edges</div></div>
+    <div class="hsp"><div class="v">F1 0.765</div><div class="l">Model score</div></div>
+    <div class="hsp"><div class="v">AUC 0.828</div><div class="l">ROC-AUC</div></div>
+  </div>
+</header>
+
+<!-- ── APP SHELL ─────────────────────────────────────────────────────────── -->
+<div class="app-shell">
+
+  <!-- SIDEBAR NAV -->
+  <nav class="sidebar">
+    <div class="sidebar-section">Main</div>
+    <div class="nav-item active" onclick="showPage('predict',this)">
+      <span class="ni-icon">&#9650;</span> Predict Risk
+    </div>
+    <div class="nav-item" onclick="showPage('history',this)">
+      <span class="ni-icon">&#128203;</span> History
+      <span class="ni-badge" id="histBadge">0</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Model</div>
+    <div class="nav-item" onclick="showPage('about',this)">
+      <span class="ni-icon">&#9432;</span> About
+    </div>
+    <div class="nav-item" onclick="showPage('howto',this)">
+      <span class="ni-icon">&#63;</span> How it works
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">Graph stats</div>
+    <div class="sidebar-stat"><span class="sv">21</span>Features per node</div>
+    <div class="sidebar-stat"><span class="sv">GAT</span>8 attention heads</div>
+    <div class="sidebar-stat"><span class="sv">k=5</span>Neighbour edges</div>
+    <div class="sidebar-stat"><span class="sv">70/15/15</span>Train/val/test split</div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- ════════════════════════════════════════════════════════
+         PAGE: Predict
+    ════════════════════════════════════════════════════════ -->
+    <div class="page active" id="page-predict">
+
+      <!-- Graph viz banner -->
+      <div class="graph-viz" style="margin-bottom:16px">
+        <svg class="graph-canvas" viewBox="0 0 260 160" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#14B8A6" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#14B8A6" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- animated patient nodes -->
+          <g style="animation:float1 4s ease-in-out infinite">
+            <circle cx="180" cy="40" r="22" fill="url(#glow1)"/>
+            <circle cx="180" cy="40" r="9" fill="none" stroke="#14B8A6" stroke-width="1.5" opacity=".7"/>
+            <circle cx="180" cy="40" r="3" fill="#14B8A6"/>
+          </g>
+          <g style="animation:float2 5s ease-in-out infinite">
+            <circle cx="220" cy="100" r="18" fill="url(#glow1)"/>
+            <circle cx="220" cy="100" r="7" fill="none" stroke="#0D9488" stroke-width="1" opacity=".6"/>
+            <circle cx="220" cy="100" r="2.5" fill="#0D9488"/>
+          </g>
+          <g style="animation:float3 3.5s ease-in-out infinite">
+            <circle cx="145" cy="120" r="14" fill="url(#glow1)"/>
+            <circle cx="145" cy="120" r="5.5" fill="none" stroke="#14B8A6" stroke-width="1" opacity=".5"/>
+            <circle cx="145" cy="120" r="2" fill="#14B8A6" opacity=".8"/>
+          </g>
+          <g opacity=".3">
+            <circle cx="240" cy="40" r="4" fill="none" stroke="#14B8A6" stroke-width="1"/>
+            <circle cx="200" cy="70" r="4" fill="none" stroke="#0D9488" stroke-width="1"/>
+          </g>
+          <!-- edges between nodes -->
+          <line x1="180" y1="40" x2="220" y2="100" stroke="#14B8A6" stroke-width="0.8" opacity=".35"/>
+          <line x1="220" y1="100" x2="145" y2="120" stroke="#14B8A6" stroke-width="0.8" opacity=".3"/>
+          <line x1="180" y1="40" x2="145" y2="120" stroke="#0D9488" stroke-width="0.5" opacity=".25"/>
+          <line x1="200" y1="70" x2="180" y2="40" stroke="#14B8A6" stroke-width="0.5" opacity=".2"/>
+        </svg>
+        <div class="graph-viz-title">Patient similarity graph</div>
+        <div class="graph-viz-sub">Disease Risk Predictor</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px;max-width:360px">
+          Enter clinical values below. The model injects this patient into a live graph of 1,688 patients and predicts risk from their clinical neighbourhood.
+        </div>
+      </div>
+
+      <!-- Stats strip -->
+      <div class="stats-strip">
+        <div class="stat-card">
+          <div class="sc-val">1,688</div>
+          <div class="sc-lbl">Training patients</div>
+          <div class="sc-trend neutral">920 heart + 768 diabetes</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-val">0.765</div>
+          <div class="sc-lbl">F1 Score (GAT)</div>
+          <div class="sc-trend up">▲ vs 0.760 MLP baseline</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-val">0.828</div>
+          <div class="sc-lbl">ROC-AUC</div>
+          <div class="sc-trend neutral">Test set · stratified split</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-val" id="sessionCount">0</div>
+          <div class="sc-lbl">Predictions this session</div>
+          <div class="sc-trend neutral">&#128203; View in History</div>
+        </div>
+      </div>
+
+      <!-- Input + results -->
+      <div class="two-col">
+
+        <!-- LEFT: Form -->
+        <div>
+          <div class="panel">
+            <div class="ph navy">&#9654;&nbsp; Patient clinical input</div>
+            <div class="pb">
+
+              <div class="fs">
+                <div class="fs-title">&#128100;&nbsp; Demographics</div>
+                <div class="fg">
+                  <div class="field">
+                    <label>Age (years)<span class="rh">18–100</span></label>
+                    <input type="number" id="age" min="18" max="100" placeholder="e.g. 54"
+                      oninput="v(this,18,100,'Age must be 18–100')">
+                    <div class="ferr" id="e-age"></div>
+                  </div>
+                  <div class="field">
+                    <label>Sex</label>
+                    <select id="sex"><option value="">— select —</option><option value="1">Male</option><option value="0">Female</option></select>
+                  </div>
+                  <div class="field">
+                    <label>BMI<span class="rh">10–65</span></label>
+                    <input type="number" id="bmi" step="0.1" min="10" max="65" placeholder="e.g. 28.5"
+                      oninput="v(this,10,65,'BMI must be 10–65')">
+                    <div class="ferr" id="e-bmi"></div>
+                  </div>
+                  <div class="field">
+                    <label>Pregnancies<span class="rh">0–20</span></label>
+                    <input type="number" id="pregnancies" min="0" max="20" placeholder="0 if N/A"
+                      oninput="v(this,0,20,'Must be 0–20')">
+                    <div class="ferr" id="e-pregnancies"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fs">
+                <div class="fs-title">&#10084;&#65039;&nbsp; Cardiovascular</div>
+                <div class="fg">
+                  <div class="field">
+                    <label>Resting BP (mmHg)<span class="rh">80–220</span></label>
+                    <input type="number" id="trestbps" min="80" max="220" placeholder="e.g. 130"
+                      oninput="v(this,80,220,'Normal: 90–120. Range: 80–220')">
+                    <div class="ferr" id="e-trestbps"></div>
+                  </div>
+                  <div class="field">
+                    <label>Cholesterol (mg/dL)<span class="rh">100–600</span></label>
+                    <input type="number" id="chol" min="100" max="600" placeholder="e.g. 240"
+                      oninput="v(this,100,600,'Enter 100–600 mg/dL')">
+                    <div class="ferr" id="e-chol"></div>
+                  </div>
+                  <div class="field">
+                    <label>Max heart rate<span class="rh">60–220</span></label>
+                    <input type="number" id="thalch" min="60" max="220" placeholder="e.g. 150"
+                      oninput="v(this,60,220,'Enter 60–220 bpm')">
+                    <div class="ferr" id="e-thalch"></div>
+                  </div>
+                  <div class="field">
+                    <label>ST depression (oldpeak)<span class="rh">0–7</span></label>
+                    <input type="number" id="oldpeak" step="0.1" min="0" max="7" placeholder="e.g. 1.5"
+                      oninput="v(this,0,7,'Enter 0–7')">
+                    <div class="ferr" id="e-oldpeak"></div>
+                  </div>
+                  <div class="field">
+                    <label>Exercise angina</label>
+                    <select id="exang"><option value="">— select —</option><option value="1">Yes</option><option value="0">No</option></select>
+                  </div>
+                  <div class="field">
+                    <label>Fasting BS &gt;120 mg/dL</label>
+                    <select id="fbs"><option value="">— select —</option><option value="1">Yes</option><option value="0">No</option></select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fs">
+                <div class="fs-title">&#128200;&nbsp; Metabolic</div>
+                <div class="fg">
+                  <div class="field">
+                    <label>Glucose (mg/dL)<span class="rh">40–300</span></label>
+                    <input type="number" id="glucose" min="40" max="300" placeholder="e.g. 120"
+                      oninput="v(this,40,300,'Normal fasting: 70–99. Range: 40–300')">
+                    <div class="ferr" id="e-glucose"></div>
+                  </div>
+                  <div class="field">
+                    <label>Insulin (µU/mL)<span class="rh">0–900</span></label>
+                    <input type="number" id="insulin" min="0" max="900" placeholder="e.g. 80"
+                      oninput="v(this,0,900,'Enter 0–900')">
+                    <div class="ferr" id="e-insulin"></div>
+                  </div>
+                  <div class="field">
+                    <label>Skin thickness (mm)<span class="rh">0–100</span></label>
+                    <input type="number" id="skin_thickness" min="0" max="100" placeholder="e.g. 25"
+                      oninput="v(this,0,100,'Enter 0–100 mm')">
+                    <div class="ferr" id="e-skin_thickness"></div>
+                  </div>
+                  <div class="field">
+                    <label>Diabetes pedigree<span class="rh">0–3</span></label>
+                    <input type="number" id="diabetes_pedigree" step="0.01" min="0" max="3" placeholder="e.g. 0.47"
+                      oninput="v(this,0,3,'Enter 0.0–3.0')">
+                    <div class="ferr" id="e-diabetes_pedigree"></div>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn-predict" id="btn" onclick="run()">&#9650;&nbsp; Predict Disease Risk</button>
+              <div class="form-info">
+                <b>All fields optional.</b> Missing values are filled with the population median from 1,688 training patients.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Results -->
+        <div class="right">
+
+          <div class="panel" id="welcomePanel">
+            <div class="pb">
+              <div class="welcome">
+                <div class="welcome-icon">&#9826;</div>
+                <div class="welcome-title">Enter patient data to begin</div>
+                <div class="welcome-sub">The GAT model will inject this patient as a new node into the graph, aggregate information from their 5 most similar clinical neighbours, and return a risk prediction with full explanation.</div>
+                <div class="how-grid">
+                  <div class="how-card"><div class="how-num">1</div><div class="how-lbl">Patient injected as new graph node</div></div>
+                  <div class="how-card"><div class="how-num">2</div><div class="how-lbl">GAT aggregates 5-neighbour context</div></div>
+                  <div class="how-card"><div class="how-num">3</div><div class="how-lbl">Risk + care plan + counterfactual</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" id="spinPanel" style="display:none">
+            <div class="spin-wrap">
+              <div class="spinner"></div>
+              <div class="spin-text">Running GAT inference on patient similarity graph...</div>
+            </div>
+          </div>
+
+          <div id="resultsWrap" style="display:none">
+            <div class="panel">
+              <div class="ph navy">&#9650;&nbsp; Prediction result</div>
+              <div id="rBanner"></div>
+            </div>
+            <div id="carePlanWrap"></div>
+            <div class="bot">
+              <div class="panel">
+                <div class="ph teal">&#9670;&nbsp; Feature attribution</div>
+                <div class="pb">
+                  <div id="contribContent"></div>
+                  <div class="note"><span style="color:var(--red-dk);font-weight:600">Red</span> = risk-increasing &nbsp;|&nbsp; <span style="color:var(--grn-dk);font-weight:600">Green</span> = protective</div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="ph dark">&#9632;&nbsp; Similar patients (k=5)</div>
+                <div class="pb" style="padding:0">
+                  <div class="tabs">
+                    <div class="tab active" onclick="swTab(this,'nbTab')">Neighbours</div>
+                    <div class="tab" onclick="swTab(this,'attnTab')">GAT attention</div>
+                  </div>
+                  <div class="tab-content active" id="nbTab"><div id="nbContent"></div></div>
+                  <div class="tab-content" id="attnTab">
+                    <div id="attnContent"></div>
+                    <div class="note">Higher weight = more influence on prediction during message passing.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="ph red">&#9651;&nbsp; Counterfactual</div>
+                <div class="pb"><div id="cfContent"></div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PAGE: History
+    ════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-history">
+      <div style="font-size:18px;font-weight:700;margin-bottom:4px;color:var(--navy)">Prediction History</div>
+      <div style="font-size:12px;color:var(--slate);margin-bottom:16px">All predictions from this session. Cleared on page refresh.</div>
+      <div id="histList">
+        <div class="empty-hist">
+          <div class="ei">&#128203;</div>
+          <div style="font-weight:600;margin-bottom:4px">No predictions yet</div>
+          <div style="font-size:12px">Go to Predict Risk and run your first prediction.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PAGE: About
+    ════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-about">
+      <div style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--navy)">About ClinicalGraph</div>
+
+      <div class="about-section">
+        <div class="about-title">&#9826; What this is</div>
+        <div class="about-body">
+          ClinicalGraph is a clinical decision support demo that predicts patient disease risk using a <b>Graph Attention Network (GAT)</b>. Unlike traditional ML models that treat patients in isolation, this system models 1,688 patients as nodes in a similarity graph and uses graph-based message passing to incorporate the clinical context of similar patients into each prediction.
+        </div>
+      </div>
+
+      <div class="about-section">
+        <div class="about-title">&#128200; Datasets</div>
+        <div class="about-body">
+          Two publicly available clinical datasets were merged into a unified patient graph:<br><br>
+          <b>UCI Heart Disease</b> — 920 patients from 4 hospitals (Cleveland, Hungary, Switzerland, VA Long Beach). Features include age, resting BP, cholesterol, ECG results, chest pain type, and ST depression. Target binarised: 0 = healthy, 1 = any heart disease.<br><br>
+          <b>Pima Indians Diabetes</b> — 768 female patients aged 21+. Features include glucose, insulin, BMI, diabetes pedigree function, and pregnancies. Biologically impossible zeros replaced with column medians before merging.
+        </div>
+      </div>
+
+      <div class="about-section">
+        <div class="about-title">&#128161; Model architecture</div>
+        <div class="about-body">
+          <b>Graph construction:</b> Patient similarity graph built using k-Nearest Neighbours (k=5) with cosine similarity on the 21-feature normalised patient vector. Every patient is guaranteed exactly 5 neighbours — no isolated nodes.<br><br>
+          <b>GAT layers:</b> Two-layer Graph Attention Network. Layer 1: GATConv(21→16, 8 heads, concat). Layer 2: GATConv(128→2, 1 head). Trained with Adam, lr=0.005, early stopping on validation F1.<br><br>
+          <b>Explainability:</b> Feature attribution via gradient backpropagation. Counterfactual generation via gradient descent in feature space — finds minimum changes to flip prediction.
+        </div>
+      </div>
+
+      <div class="about-section">
+        <div class="about-title">&#128296; Technology stack</div>
+        <div class="about-body" style="margin-bottom:10px">Built entirely in Python and JavaScript:</div>
+        <span class="tech-pill">PyTorch 2.0</span>
+        <span class="tech-pill">PyTorch Geometric</span>
+        <span class="tech-pill">Flask 3.0</span>
+        <span class="tech-pill">scikit-learn</span>
+        <span class="tech-pill">pandas</span>
+        <span class="tech-pill">NumPy</span>
+        <span class="tech-pill">Vanilla JS</span>
+        <span class="tech-pill">SVG animations</span>
+      </div>
+
+      <div class="about-section">
+        <div class="about-title">&#9888; Disclaimer</div>
+        <div class="about-body">
+          This tool is for demonstration and research purposes only. It is <b>not a medical device</b> and should not be used to make clinical decisions. All predictions should be interpreted by qualified healthcare professionals. The model was trained on small public benchmark datasets and does not generalise to real-world clinical settings without proper validation.
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════
+         PAGE: How it works
+    ════════════════════════════════════════════════════════ -->
+    <div class="page" id="page-howto">
+      <div style="font-size:18px;font-weight:700;margin-bottom:16px;color:var(--navy)">How it works</div>
+
+      <div class="about-section">
+        <div class="about-title">&#49;&#65039;&#8419; Step 1 — Enter patient values</div>
+        <div class="about-body">Type any combination of clinical measurements on the Predict Risk page. All fields are optional — any value you leave blank is automatically filled with the population median from the 1,688 training patients. The model handles partial inputs gracefully.</div>
+      </div>
+
+      <div class="about-section">
+        <div class="about-title">&#50;&#65039;&#8419; Step 2 — Patient injected into graph</div>
+        <div class="about-body">The new patient is added as node #1689 in the patient similarity graph. Five edges are drawn to their nearest neighbours using cosine similarity on the normalised 21-feature vector. This is exactly the same construction used during training.</div>
+      </div>
+
+      <div class="about-section">
+        <div class="about-title">&#51;&#65039;&#8419; Step 3 — GAT message passing</div>
+        <div class="about-body">The Graph Attention Network runs a forward pass. In Layer 1, each patient aggregates features from their 5 neighbours using 8 learned attention heads — each head learns which neighbours to weight more heavily. In Layer 2, a second convolution aggregates 2-hop neighbourhood context. The attention weights are extracted and displayed in the Similar Patients panel.</div>
+      </div>
+
+      <div class="about-section">
+        <div class="about-title">&#52;&#65039;&#8419; Step 4 — Prediction and explanation</div>
+        <div class="about-body">
+          The model outputs a disease risk probability. Four explanations are generated simultaneously:<br><br>
+          <b>Feature attribution</b> — gradient backpropagation identifies which clinical values contributed most to the score, and in which direction.<br><br>
+          <b>Similar patients</b> — the 5 nearest graph neighbours are shown with their real labels, so you can see what the model is comparing this patient to.<br><br>
+          <b>GAT attention</b> — which neighbours received the most attention during message passing.<br><br>
+          <b>Counterfactual</b> — gradient descent finds the minimum feature changes that would flip the prediction from high risk to healthy, giving a clinically actionable target.
+        </div>
+      </div>
+
+      <div class="about-section">
+        <div class="about-title">&#53;&#65039;&#8419; Step 5 — Care plan</div>
+        <div class="about-body">The care plan adapts to both the risk level and the specific features that were flagged. If glucose was flagged as a top contributor, the care plan specifically recommends a glucose tolerance test. If ST depression was flagged, it recommends a cardiac stress test. Low-risk patients receive a preventive care roadmap rather than urgent recommendations.</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── Page navigation ──────────────────────────────────────────────────────────
+function showPage(name, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+}
+
+// ── Session history ──────────────────────────────────────────────────────────
+let sessionHistory = [];
+
+function addToHistory(d, inputVals) {
+  const entry = {
+    id: sessionHistory.length + 1,
+    timestamp: new Date().toLocaleTimeString(),
+    prediction: d.prediction,
+    risk_level: d.risk_level,
+    prob_disease: d.prob_disease,
+    top_feature: d.contributions[0]?.feature || '—',
+    inputs: inputVals,
+  };
+  sessionHistory.unshift(entry);
+  updateHistBadge();
+  renderHistory();
+}
+
+function updateHistBadge() {
+  document.getElementById('histBadge').textContent = sessionHistory.length;
+  document.getElementById('sessionCount').textContent = sessionHistory.length;
+}
+
+function renderHistory() {
+  const el = document.getElementById('histList');
+  if (sessionHistory.length === 0) {
+    el.innerHTML = '<div class="empty-hist"><div class="ei">&#128203;</div><div style="font-weight:600;margin-bottom:4px">No predictions yet</div><div style="font-size:12px">Go to Predict Risk and run your first prediction.</div></div>';
+    return;
+  }
+  el.innerHTML = sessionHistory.map(e => `
+    <div class="hist-item">
+      <div class="hist-dot ${e.risk_level}"></div>
+      <div class="hist-info">
+        <div class="hist-name">Prediction #${e.id}</div>
+        <div class="hist-detail">${e.timestamp} &nbsp;·&nbsp; Top feature: ${e.top_feature} &nbsp;·&nbsp; ${Object.keys(e.inputs).length} values entered</div>
+      </div>
+      <div class="hist-pct ${e.risk_level}">${e.prob_disease}%</div>
+    </div>`).join('');
+}
+
+// ── Validation ──────────────────────────────────────────────────────────────
+function v(el, min, max, msg) {
+  const err = document.getElementById('e-' + el.id);
+  if (el.value === '') {
+    el.classList.remove('err','ok');
+    if (err) { err.textContent=''; err.classList.remove('show'); }
+    return true;
+  }
+  const val = parseFloat(el.value);
+  if (isNaN(val) || val < min || val > max) {
+    el.classList.add('err'); el.classList.remove('ok');
+    if (err) { err.textContent = '⚠ ' + msg; err.classList.add('show'); }
+    return false;
+  }
+  el.classList.add('ok'); el.classList.remove('err');
+  if (err) { err.textContent=''; err.classList.remove('show'); }
+  return true;
+}
+
+function validateAll() {
+  const rules = [
+    ['age',18,100,'Age must be 18–100'],['bmi',10,65,'BMI must be 10–65'],
+    ['trestbps',80,220,'BP: 80–220 mmHg'],['chol',100,600,'Cholesterol: 100–600'],
+    ['thalch',60,220,'Heart rate: 60–220'],['oldpeak',0,7,'Oldpeak: 0–7'],
+    ['glucose',40,300,'Glucose: 40–300'],['insulin',0,900,'Insulin: 0–900'],
+    ['skin_thickness',0,100,'Skin thickness: 0–100'],
+    ['diabetes_pedigree',0,3,'Pedigree: 0.0–3.0'],['pregnancies',0,20,'Pregnancies: 0–20']
+  ];
+  let ok = true;
+  for (const [id, min, max, msg] of rules) {
+    const el = document.getElementById(id);
+    if (el && el.value !== '') if (!v(el, min, max, msg)) ok = false;
+  }
+  if (!ok) { const f = document.querySelector('.ferr.show'); if (f) f.scrollIntoView({behavior:'smooth',block:'center'}); }
+  return ok;
+}
+
+// ── Tabs ────────────────────────────────────────────────────────────────────
+function swTab(tab, tid) {
+  const pb = tab.closest('.pb');
+  pb.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  pb.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById(tid).classList.add('active');
+}
+
+// ── Run prediction ──────────────────────────────────────────────────────────
+const FIELDS = ["age","sex","trestbps","chol","thalch","oldpeak","exang","fbs",
+                "glucose","bmi","insulin","skin_thickness","diabetes_pedigree","pregnancies"];
+
+async function run() {
+  if (!validateAll()) return;
+  const btn = document.getElementById('btn');
+  btn.disabled = true; btn.textContent = 'Running GAT inference…';
+  document.getElementById('welcomePanel').style.display = 'none';
+  document.getElementById('spinPanel').style.display  = 'block';
+  document.getElementById('resultsWrap').style.display = 'none';
+  const payload = {};
+  FIELDS.forEach(f => {
+    const el = document.getElementById(f);
+    if (el && el.value !== '') payload[f] = el.value;
+  });
+  try {
+    const res = await fetch('/predict', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    renderAll(data);
+    addToHistory(data, payload);
+  } catch(e) {
+    alert('Error — check the VS Code terminal for details.');
+    console.error(e);
+    document.getElementById('welcomePanel').style.display = 'block';
+  }
+  document.getElementById('spinPanel').style.display = 'none';
+  btn.disabled = false;
+  btn.innerHTML = '&#9650;&nbsp; Predict Disease Risk';
+}
+
+function renderAll(d) {
+  document.getElementById('resultsWrap').style.display = 'block';
+  renderBanner(d);
+  renderCarePlan(d);
+  renderContrib(d.contributions);
+  renderNb(d.neighbours);
+  renderAttn(d.attention);
+  renderCF(d.counterfactual, d.risk_level);
+  setTimeout(() => document.getElementById('resultsWrap').scrollIntoView({behavior:'smooth',block:'start'}), 80);
+}
+
+// ── Risk banner ──────────────────────────────────────────────────────────────
+function renderBanner(d) {
+  const hi = d.risk_level === 'high';
+  const cls = hi ? 'high' : 'low';
+  const CL = 2 * Math.PI * 30;
+  document.getElementById('rBanner').innerHTML = `
+    <div class="risk-banner">
+      <div class="ring-wrap ${hi?'pulse':''}">
+        <svg class="ring-svg" width="76" height="76" viewBox="0 0 76 76">
+          <circle class="ring-bg" cx="38" cy="38" r="30"/>
+          <circle class="ring-fill ${cls}" cx="38" cy="38" r="30"
+            stroke-dasharray="${CL}" stroke-dashoffset="${CL}" id="ringFill"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-pct ${cls}" id="ringPct">0%</div>
+          <div class="ring-lbl">risk</div>
+        </div>
+      </div>
+      <div class="risk-info">
+        <div class="risk-label ${cls}">${hi?'⚠':'✓'} ${d.prediction}</div>
+        <div class="risk-sub">${hi?'Further clinical screening recommended':'Low risk profile — see preventive care plan below'}</div>
+      </div>
+      <div class="risk-bars">
+        <div class="prow">
+          <span class="plbl">Disease risk</span>
+          <div class="pbg"><div class="pbar d" id="barD"></div></div>
+          <span class="ppct d">${d.prob_disease}%</span>
+        </div>
+        <div class="prow">
+          <span class="plbl">Healthy</span>
+          <div class="pbg"><div class="pbar h" id="barH"></div></div>
+          <span class="ppct h">${d.prob_healthy}%</span>
+        </div>
+        <div class="nb-sum-line">${d.n_disease_neighbours} of 5 nearest graph neighbours have confirmed disease</div>
+      </div>
+    </div>`;
+  setTimeout(() => {
+    const offset = CL - (d.prob_disease / 100) * CL;
+    document.getElementById('ringFill').style.strokeDashoffset = offset;
+    document.getElementById('barD').style.width = d.prob_disease + '%';
+    document.getElementById('barH').style.width = d.prob_healthy + '%';
+    let cur = 0;
+    const inc = setInterval(() => {
+      cur = Math.min(cur + 2, d.prob_disease);
+      document.getElementById('ringPct').textContent = cur + '%';
+      if (cur >= d.prob_disease) clearInterval(inc);
+    }, 14);
+  }, 80);
+}
+
+// ── Care plan ────────────────────────────────────────────────────────────────
+function renderCarePlan(d) {
+  const hi = d.risk_level === 'high';
+  const topRiskFeatures = d.contributions.filter(c=>c.direction==='risk').slice(0,3).map(c=>c.feature);
+  const msg = hi
+    ? `The model flags <b>elevated disease risk</b>. ${d.n_disease_neighbours} of your 5 most clinically similar patients in the graph have confirmed disease.`
+    : `Your clinical profile shows <b>low disease risk</b>. Your graph neighbourhood is predominantly healthy patients with similar biomarkers.`;
+  const baseItems = hi ? [
+    {cls:'ci-red',  icon:'⚕',  text:'<b>Consult a clinician promptly.</b> This is a risk indicator, not a diagnosis. A physician should evaluate the specific features driving this score.'},
+    {cls:'ci-red',  icon:'🔬', text:'<b>Targeted diagnostic tests recommended.</b> Based on the top contributing features, relevant tests would clarify your clinical status.'},
+    {cls:'ci-amb',  icon:'📉', text:'<b>Counterfactual targets available.</b> The panel on the right shows the minimum feature changes that could shift your prediction toward low risk.'},
+    {cls:'ci-blue', icon:'🍎', text:'<b>Lifestyle intervention.</b> Evidence-based changes for the flagged biomarkers — dietary adjustment, physical activity, weight management.'},
+    {cls:'ci-purple',icon:'📅',text:'<b>Structured follow-up.</b> Ask your provider about a care plan addressing your specific flagged biomarkers. Re-assess in 3–6 months after any intervention.'},
+  ] : [
+    {cls:'ci-grn',  icon:'✓',  text:'<b>Great news — keep it up.</b> Your current metabolic and cardiovascular profile is protective. Sustained healthy habits remain your strongest long-term asset.'},
+    {cls:'ci-grn',  icon:'📋', text:'<b>Annual health checkup.</b> Your profile warrants standard monitoring. A yearly metabolic panel captures any drift early.'},
+    {cls:'ci-blue', icon:'📊', text:'<b>Baseline tracking.</b> Logging key biomarkers annually gives a longitudinal view of your clinical trajectory.'},
+    {cls:'ci-blue', icon:'🧬', text:'<b>Consider family history.</b> Even with a low model score, first-degree relatives with heart disease or diabetes warrant a conversation with your GP.'},
+    {cls:'ci-amb',  icon:'🔄', text:'<b>Re-screen in 12 months.</b> Risk changes with age, lifestyle, and health events. A follow-up gives a longitudinal picture.'},
+  ];
+  const featureTips = {
+    glucose: {cls:'ci-amb', icon:'🩸', text:'<b>Glucose flagged as top contributor.</b> A formal glucose tolerance test distinguishes pre-diabetes from diabetes with clinical precision.'},
+    bmi:     {cls:'ci-amb', icon:'⚖',  text:'<b>BMI flagged as contributing factor.</b> A 5–10% body weight reduction significantly reduces both cardiovascular and metabolic disease risk.'},
+    trestbps:{cls:'ci-red', icon:'💊', text:'<b>Blood pressure flagged.</b> Sustained readings above 130/80 mmHg warrant medical evaluation. Hypertension is often asymptomatic.'},
+    chol:    {cls:'ci-amb', icon:'🫀', text:'<b>Cholesterol flagged.</b> A full lipid panel (LDL, HDL, triglycerides) gives more actionable information than total cholesterol alone.'},
+    oldpeak: {cls:'ci-red', icon:'📈', text:'<b>ST depression (oldpeak) flagged.</b> This cardiac stress marker warrants an exercise stress test or echocardiogram for definitive assessment.'},
+  };
+  const extra = topRiskFeatures.filter(f=>featureTips[f]).map(f=>featureTips[f]);
+  const allItems = [...baseItems, ...extra];
+  document.getElementById('carePlanWrap').innerHTML = `
+    <div class="care-card" style="margin-bottom:14px">
+      <div class="care-header" style="background:${hi?'linear-gradient(135deg,#FEE2E2,#fff)':'linear-gradient(135deg,#DCFCE7,#f0fff4)'}">
+        <div class="care-icon" style="background:${hi?'#FEE2E2':'#DCFCE7'}">${hi?'⚠':'✓'}</div>
+        <div>
+          <div class="care-title" style="color:${hi?'var(--red-dk)':'var(--grn-dk)'}">${hi?'Elevated Risk — Recommended Actions':'Low Risk — Preventive Care Plan'}</div>
+          <div class="care-msg" style="color:${hi?'var(--red-md)':'var(--grn-md)'}">${msg}</div>
+        </div>
+      </div>
+      <div class="care-divider"></div>
+      <div class="care-body">
+        <div class="care-section-title" style="color:${hi?'var(--red-dk)':'var(--grn-dk)'}">
+          ${hi?'⚕ Clinical recommendations':'✓ Preventive care actions'}
+        </div>
+        <div class="care-items">
+          ${allItems.map(it=>`<div class="care-item ${it.cls}"><span class="care-item-icon">${it.icon}</span><span>${it.text}</span></div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Feature contributions ────────────────────────────────────────────────────
+function renderContrib(cs) {
+  document.getElementById('contribContent').innerHTML =
+    cs.map(c=>`
+      <div class="crow">
+        <div class="cn" title="${c.display}">${sn(c.display)}</div>
+        <div class="cbg"><div class="cb ${c.direction}" style="width:${c.bar_pct}%"></div></div>
+        <div class="csign ${c.direction}">${c.direction==='risk'?'+':'−'}${Math.abs(c.gradient).toFixed(3)}</div>
+      </div>`).join('');
+}
+
+// ── Neighbours ───────────────────────────────────────────────────────────────
+function renderNb(nbs) {
+  document.getElementById('nbContent').innerHTML =
+    nbs.map(nb=>`
+      <div class="nrow">
+        <div class="ndot ${nb.label===1?'disease':'healthy'}"></div>
+        <div class="ni">
+          <div class="nn">Patient #${nb.patient_id} <span style="font-size:9px;color:var(--slate);font-weight:400">${nb.source}</span></div>
+          <div class="ns">${kvStr(nb.key_vals)}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+          <span class="badge ${nb.label===1?'disease':'healthy'}">${nb.label_str}</span>
+          <span style="font-size:9px;color:var(--slate)">${(nb.similarity*100).toFixed(0)}% similar</span>
+        </div>
+      </div>`).join('');
+}
+
+// ── GAT attention ────────────────────────────────────────────────────────────
+function renderAttn(attn) {
+  if (!attn||attn.length===0){
+    document.getElementById('attnContent').innerHTML='<div style="padding:12px;font-size:11px;color:var(--slate)">No attention data.</div>';
+    return;
+  }
+  const mx = Math.max(...attn.map(a=>a.attention));
+  document.getElementById('attnContent').innerHTML =
+    attn.map(a=>`
+      <div class="arow">
+        <div class="aid">Pt #${a.patient_id}</div>
+        <div class="abg"><div class="ab" style="width:${(a.attention/mx*100).toFixed(0)}%"></div></div>
+        <div class="av">${a.attention.toFixed(3)}</div>
+      </div>`).join('');
+}
+
+// ── Counterfactual ───────────────────────────────────────────────────────────
+function renderCF(cf, riskLevel) {
+  if (riskLevel !== 'high' || !cf || cf.length === 0) {
+    document.getElementById('cfContent').innerHTML = `
+      <div style="padding:10px;background:var(--grn-pale);border-radius:var(--r);font-size:11px;color:var(--grn-dk);line-height:1.5">
+        <b>No changes needed.</b><br>This patient already predicts low risk.
+      </div>`;
+    return;
+  }
+  document.getElementById('cfContent').innerHTML =
+    `<div class="cf-intro">Minimum feature changes to flip prediction to <b>healthy</b>:</div>` +
+    cf.map(c=>`
+      <div class="cfrow">
+        <div class="cff">${sn(c.display)}</div>
+        <div class="cfc">
+          <span class="cfo">${c.original}</span>
+          <span style="color:var(--slate)">→</span>
+          <span class="cfs">${c.suggested}</span>
+          <span class="cfd">(${c.delta>0?'+':''}${c.delta})</span>
+        </div>
+      </div>`).join('');
+}
+
+// ── Utils ────────────────────────────────────────────────────────────────────
+function sn(s){ return s.replace(/ \(.*\)/,'').replace('Chest pain: ','cp: ').replace('ECG: ','ecg: '); }
+function kvStr(kv){ return Object.entries(kv).map(([k,v])=>`${k}=${v}`).join(' · '); }
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter' && !document.getElementById('btn').disabled) run();
+});
+</script>
+</body>
+</html>

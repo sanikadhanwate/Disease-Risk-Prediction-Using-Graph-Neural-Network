@@ -1,0 +1,21 @@
+age
+sex
+trestbps
+chol
+fbs
+thalch
+exang
+oldpeak
+cp_asymptomatic
+cp_atypical angina
+cp_non-anginal
+cp_typical angina
+restecg_lv hypertrophy
+restecg_normal
+restecg_st-t abnormality
+pregnancies
+glucose
+skin_thickness
+insulin
+bmi
+diabetes_pedigree
